@@ -7,12 +7,14 @@
   },
   "devDependencies": {
     "@matterlabs/hardhat-zksync-solc": "^1.1.14",
-    "@matterlabs/hardhat-zksync-verify": "^1.7.1",
+    "@matterlabs/hardhat-zksync-verify": "^1.2.2",
+    "cid-tool": "^3.0.0",
     "hardhat": "^2.19.1"
   },
   "dependencies": {
     "@thirdweb-dev/contracts": "^3.8.0",
     "dotenv": "^17.2.3",
-    "zksync-ethers": "^5.7.0"
+    "thirdweb": "^5.111.0",
+    "zksync-ethers": "^6.21.0"
   }
 }
