@@ -8,7 +8,9 @@
   "devDependencies": {
     "@matterlabs/hardhat-zksync-solc": "^1.1.14",
     "@matterlabs/hardhat-zksync-verify": "^1.2.2",
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
     "cid-tool": "^3.0.0",
+    "ethers": "^6.15.0",
     "hardhat": "^2.19.1"
   },
   "dependencies": {

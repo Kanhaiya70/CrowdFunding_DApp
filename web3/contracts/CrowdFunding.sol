@@ -10,6 +10,7 @@ contract CrowdFunding {
         uint256 deadline;
         uint256 amountCollected;
         string image;
+        bool isDeleted;     // To delete or hide Campaign
         address[] donators;
         uint256[] donations;
     }
@@ -20,7 +21,7 @@ contract CrowdFunding {
     function createCampaign(address _owner, string memory _title, string memory _description, uint256 _target, uint256 _deadline, string memory _image) public returns (uint256) {
         Campaign storage campaign = campaigns[numberOfCampaigns];
 
-        require(campaign.deadline < block.timestamp, "The deadline should be a date in the future.");
+        require(_deadline > block.timestamp, "The deadline should be a date in the future.");
 
         campaign.owner = _owner;
         campaign.title = _title;
@@ -46,7 +47,7 @@ contract CrowdFunding {
         (bool sent,) = payable(campaign.owner).call{value: amount}("");
 
         if(sent) {
-            campaign.amountCollected = campaign.amountCollected = amount;
+            campaign.amountCollected += amount;
         }
     }
 
@@ -54,16 +55,83 @@ contract CrowdFunding {
         return (campaigns[_id].donators, campaigns[_id].donations);
     }
 
+    // function getCampaigns() public view returns (Campaign[] memory) {
+    //     Campaign[] memory allCampaigns = new Campaign[](numberOfCampaigns);
+
+    //     for(uint i = 0; i < numberOfCampaigns; i++)
+    //     {
+    //         Campaign storage item = campaigns[i];
+
+    //         allCampaigns[i] = item;
+    //     }
+
+    //     return allCampaigns;
+    // }
+
     function getCampaigns() public view returns (Campaign[] memory) {
         Campaign[] memory allCampaigns = new Campaign[](numberOfCampaigns);
-
-        for(uint i = 0; i < numberOfCampaigns; i++)
-        {
+        for (uint i = 0; i < numberOfCampaigns; i++) {
             Campaign storage item = campaigns[i];
-
             allCampaigns[i] = item;
         }
-
         return allCampaigns;
+    }
+
+
+    // function getCampaigns() public view returns (Campaign[] memory) {
+    //     uint256 count = 0;
+    //     for (uint i = 0; i < numberOfCampaigns; i++) {
+    //         if (!campaigns[i].isDeleted) {
+    //             count++;
+    //         }
+    //     }
+
+    //     Campaign[] memory activeCampaigns = new Campaign[](count);
+    //     uint256 index = 0;
+    //     for (uint i = 0; i < numberOfCampaigns; i++) {
+    //         if (!campaigns[i].isDeleted) {
+    //             activeCampaigns[index] = campaigns[i];
+    //             index++;
+    //         }
+    //     }
+
+    //     return activeCampaigns;
+    // }
+
+    // function deleteCampaign(uint256 _pId) public {
+    //     Campaign storage campaign = campaigns[_pId];
+    //     require(campaign.owner == msg.sender, "Not campaign owner");
+    //     campaign.isDeleted = true;
+    // }
+
+    // Get all *active* campaigns (not deleted)
+    // function getCampaigns() public view returns (Campaign[] memory) {
+    //     uint256 count = 0;
+    //     for (uint256 i = 0; i < numberOfCampaigns; i++) {
+    //         if (!campaigns[i].isDeleted) {
+    //             count++;
+    //         }
+    //     }
+
+    //     Campaign[] memory activeCampaigns = new Campaign[](count);
+    //     uint256 index = 0;
+
+    //     for (uint256 i = 0; i < numberOfCampaigns; i++) {
+    //         if (!campaigns[i].isDeleted) {
+    //             activeCampaigns[index] = campaigns[i];
+    //             index++;
+    //         }
+    //     }
+
+    //     return activeCampaigns;
+    // }
+
+    // Delete campaign (only owner)
+    function deleteCampaign(uint256 _id) public {
+        Campaign storage campaign = campaigns[_id];
+        require(campaign.owner == msg.sender, "Not campaign owner");
+        require(!campaign.isDeleted, "Already deleted");
+
+        campaign.isDeleted = true;
     }
 }
