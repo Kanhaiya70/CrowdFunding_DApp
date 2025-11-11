@@ -62,11 +62,11 @@ const Sidebar = () => {
           ))}
         </div>
 
-        {/* 🌞 Theme toggle button */}
+        {/* Theme toggle button */}
         <Icon
           styles="bg-gray-white dark:bg-[#1c1c24] shadow-secondary transition-colors duration-300"
           imgUrl={sun}
-          handleClick={toggleTheme} // 👈 now toggles theme
+          handleClick={toggleTheme} // now toggles theme
         />
       </div>
     </div>
