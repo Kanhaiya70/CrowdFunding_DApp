@@ -39,7 +39,6 @@ const CreateCampaign = () => {
       }
     })
     
-    // await CreateCampaign({ ...form, target: ethers.utils.parseUnits(form.target, 18)})
     console.log(form);
   }
 
