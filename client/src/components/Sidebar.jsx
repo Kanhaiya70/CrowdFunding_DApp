@@ -1,27 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { logo, sun } from "../assets";
-import { navlinks } from "../constants";
-import { useTheme } from "../context/ThemeContext"; // 👈 import the theme hook
+import { logo, sun } from '../assets';
+import { navlinks } from '../constants';
+import { useStateContext } from '../context';
 
-
-const Icon = ({
-  styles,
-  name,
-  imgUrl,
-  isActive,
-  disabled,
-  handleClick,
-}) => (
+const Icon = ({ styles, name, imgUrl, isActive, disabled, handleClick, title }) => (
   <div
-  className={`w-[48px] h-[48px] rounded-[10px] ${
-    isActive && isActive === name && "bg-gray-white dark:bg-[#2c2f32]"
-  } flex justify-center items-center ${
-    !disabled && "cursor-pointer"
-  } ${styles} transition-colors duration-300`}
-  onClick={handleClick}
->
+    className={`w-[48px] h-[48px] rounded-[10px] ${isActive && isActive === name && 'bg-[#2c2f32]'} flex justify-center items-center ${!disabled && 'cursor-pointer'} ${styles}`}
+    onClick={disabled ? undefined : handleClick}
+    role={disabled ? undefined : 'button'}
+    title={title || name}
+  >
     {!isActive ? (
       <img src={imgUrl} alt="fund_logo" className="w-1/2 h-1/2" />
     ) : (
@@ -36,8 +26,8 @@ const Icon = ({
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const [isActive, setIsActive] = useState("dashboard");
-  const { toggleTheme } = useTheme(); // 👈 access theme + toggle function
+  const [isActive, setIsActive] = useState('dashboard');
+  const { toggleTheme, theme } = useStateContext();
 
   return (
     <div className="flex justify-between items-center flex-col sticky top-5 h-[93vh]">
@@ -62,11 +52,13 @@ const Sidebar = () => {
           ))}
         </div>
 
-        {/* Theme toggle button */}
         <Icon
-          styles="bg-gray-white dark:bg-[#1c1c24] shadow-secondary transition-colors duration-300"
+          styles={`${theme === 'dark' ? 'bg-[#1c1c24]' : 'bg-white'} shadow-secondary transition-colors`}
           imgUrl={sun}
-          handleClick={toggleTheme} // now toggles theme
+          name="theme-toggle"
+          isActive={null}
+          handleClick={toggleTheme}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         />
       </div>
     </div>
