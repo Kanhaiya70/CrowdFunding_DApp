@@ -37,6 +37,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ThirdwebProvider } from '@thirdweb-dev/react';
 import { Sepolia } from "@thirdweb-dev/chains";
+import { ThemeProvider } from "./context/ThemeContext";
 import { StateContextProvider } from "./context";
 import App from './App';
 import './index.css';
@@ -49,9 +50,11 @@ root.render(
     activeChain={Sepolia}
   >
     <Router>
+      <ThemeProvider>
       <StateContextProvider>
         <App />
       </StateContextProvider>
+      </ThemeProvider>
     </Router>
   </ThirdwebProvider>
 );
