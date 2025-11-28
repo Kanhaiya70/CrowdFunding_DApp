@@ -14,12 +14,43 @@
   font-optical-sizing: auto;
   font-style: normal;
   font-variation-settings: "slnt" 0;
+  color-scheme: dark;
+  --bg-app: #13131a;
+  --bg-surface: #1c1c24;
+  --bg-muted: #3a3a43;
+  --bg-card-alt: #2c2f32;
+  --bg-panel: #28282e;
+  --bg-chip: #13131a;
+  --text-primary: #ffffff;
+  --text-secondary: #808191;
+  --text-muted: #b2b3bd;
+  --text-tertiary: #818183;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-app: #f7f8fd;
+  --bg-surface: #ffffff;
+  --bg-muted: #dfe2ef;
+  --bg-card-alt: #e7eaf6;
+  --bg-panel: #e6e9f5;
+  --bg-chip: #ffffff;
+  --text-primary: #111322;
+  --text-secondary: #4f566b;
+  --text-muted: #1f2433;
+  --text-tertiary: #5a5f76;
 }
 
 @layer base {
   body {
     @apply bg-zinc-950 text-neutral-200;
   }
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .linear-gradient {
@@ -33,4 +64,45 @@
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   filter: invert(0.8);
+}
+
+.bg-\[\#13131a\] {
+  background-color: var(--bg-app) !important;
+}
+
+.bg-\[\#1c1c24\] {
+  background-color: var(--bg-surface) !important;
+}
+
+.bg-\[\#3a3a43\] {
+  background-color: var(--bg-muted) !important;
+}
+
+.bg-\[\#2c2f32\] {
+  background-color: var(--bg-card-alt) !important;
+}
+
+.bg-\[\#28282e\] {
+  background-color: var(--bg-panel) !important;
+}
+
+.text-white {
+  color: var(--text-primary) !important;
+}
+
+.text-\[\#808191\],
+.placeholder\:text-\[\#4b5264\]::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.text-\[\#818183\] {
+  color: var(--text-tertiary) !important;
+}
+
+.text-\[\#b2b3bd\] {
+  color: var(--text-muted) !important;
+}
+
+.border-\[\#3a3a43\] {
+  border-color: var(--bg-muted) !important;
 }

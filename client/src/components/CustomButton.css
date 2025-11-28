@@ -1,0 +1,180 @@
+.custom-btn {
+  position: relative;
+  overflow: hidden;
+  background-color: transparent !important;
+  border: none !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.custom-btn__label {
+  position: relative;
+  z-index: 2;
+  letter-spacing: 0.08em;
+}
+
+.custom-btn__clip {
+  --color: #2761c3;
+  pointer-events: none;
+  position: absolute;
+  inset: 8px;
+  overflow: hidden;
+  border: 3px double var(--color);
+  box-shadow: inset 0 0 12px rgba(25, 84, 128, 0.8);
+  -webkit-clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  transition: 0.2s;
+  z-index: 1;
+}
+
+.custom-btn__arrow {
+  pointer-events: none;
+  position: absolute;
+  transition: 0.2s;
+  background-color: #2761c3;
+  top: 35%;
+  width: 11%;
+  height: 30%;
+  opacity: 0;
+}
+
+.custom-btn__arrow--left {
+  left: -13.5%;
+  -webkit-clip-path: polygon(100% 0, 100% 100%, 0 50%);
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+}
+
+.custom-btn__arrow--right {
+  left: 102%;
+  -webkit-clip-path: polygon(100% 49%, 0 0, 0 100%);
+  clip-path: polygon(100% 49%, 0 0, 0 100%);
+}
+
+.custom-btn__corner {
+  pointer-events: none;
+  position: absolute;
+  width: 3.2em;
+  height: 3.2em;
+  background-color: #2761c3;
+  box-shadow: inset 1px 1px 6px #2781c3;
+  transform: scale(0.85) rotate(45deg);
+  transition: 0.2s;
+  z-index: 1;
+}
+
+.custom-btn__corner--right-top {
+  top: -1.7em;
+  left: 86%;
+}
+
+.custom-btn__corner--left-top {
+  top: -1.7em;
+  left: -2.6em;
+}
+
+.custom-btn__corner--left-bottom {
+  top: 2em;
+  left: -1.8em;
+}
+
+.custom-btn__corner--right-bottom {
+  top: 50%;
+  left: 82%;
+}
+
+.custom-btn:hover .custom-btn__arrow {
+  opacity: 1;
+}
+
+.custom-btn:hover .custom-btn__arrow--right {
+  background-color: #27c39f;
+  left: -15%;
+  animation: rightArrow8 0.6s ease-in-out both infinite alternate;
+}
+
+.custom-btn:hover .custom-btn__arrow--left {
+  background-color: #27c39f;
+  left: 103%;
+  animation: leftArrow8 0.6s ease-in-out both infinite alternate;
+}
+
+.custom-btn:hover .custom-btn__corner {
+  transform: scale(1.1) rotate(45deg);
+}
+
+.custom-btn:hover .custom-btn__corner--left-top {
+  animation: changeColor8 0.1s ease-in-out 0.05s both, lightEffect8 0.2s linear 0.4s both;
+}
+
+.custom-btn:hover .custom-btn__corner--right-top {
+  animation: changeColor8 0.1s ease-in-out 0.15s both, lightEffect8 0.2s linear 0.4s both;
+}
+
+.custom-btn:hover .custom-btn__corner--right-bottom {
+  animation: changeColor8 0.1s ease-in-out 0.25s both, lightEffect8 0.2s linear 0.4s both;
+}
+
+.custom-btn:hover .custom-btn__corner--left-bottom {
+  animation: changeColor8 0.1s ease-in-out 0.35s both, lightEffect8 0.2s linear 0.4s both;
+}
+
+.custom-btn:hover .custom-btn__clip {
+  animation: greenLight8 0.2s ease-in-out 0.55s both;
+  --color: #27c39f;
+}
+
+@keyframes changeColor8 {
+  from {
+    background-color: #2781c3;
+  }
+  to {
+    background-color: #27c39f;
+  }
+}
+
+@keyframes lightEffect8 {
+  from {
+    box-shadow: 1px 1px 5px #27c39f;
+  }
+  to {
+    box-shadow: 0 0 2px #27c39f;
+  }
+}
+
+@keyframes greenLight8 {
+  from {
+    box-shadow: inset 0 0 15px #195480;
+  }
+  to {
+    box-shadow: inset 0 0 32px #27c39f;
+  }
+}
+
+@keyframes leftArrow8 {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(10px);
+  }
+}
+
+@keyframes rightArrow8 {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-btn__clip {
+    inset: 6px;
+  }
+
+  .custom-btn__corner {
+    width: 2.6em;
+    height: 2.6em;
+  }
+}
+
