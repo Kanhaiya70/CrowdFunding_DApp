@@ -52,14 +52,23 @@ const CampaignDetails = () => {
     };
   }, []);
 
+  const [errorMessage, setErrorMessage] = useState('');
+
   const handleDonate = async () => {
     if (!amount || Number(amount) <= 0) {
-      alert('Please enter a valid amount greater than zero.');
+      setErrorMessage('Please enter a valid amount greater than zero.');
+      setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
 
     if (!address) {
       connect?.();
+      return;
+    }
+
+    if (address === campaign.owner) {
+      setErrorMessage("You cannot donate to your own campaign.");
+      setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
 
@@ -78,6 +87,8 @@ const CampaignDetails = () => {
       setAmount('');
     } catch (error) {
       console.error('Donation failed:', error);
+      setErrorMessage("Transaction failed. Please try again.");
+      setTimeout(() => setErrorMessage(''), 3000);
     } finally {
       setIsLoading(false);
     }
@@ -95,6 +106,28 @@ const CampaignDetails = () => {
     <div>
       {isLoading && <Loader />}
       {showPaymentCard && <PaymentSuccessCard amount={lastDonation} />}
+
+      {/* Error Overlay */}
+      {errorMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#1c1c24] p-8 rounded-[20px] shadow-2xl border border-red-500/50 max-w-sm w-full text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-500"></div>
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-red-500">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+            <h3 className="font-epilogue font-bold text-[22px] text-white mb-2">Oops!</h3>
+            <p className="font-epilogue font-normal text-gray-400 mb-6">{errorMessage}</p>
+            <button
+              onClick={() => setErrorMessage('')}
+              className="bg-[#2c2f32] hover:bg-[#3a3a43] text-white font-bold py-3 px-8 rounded-xl transition-all w-full"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* GTA-Style Hero Section (Theme-Compatible) */}
       <div className="relative w-full h-[500px] rounded-[24px] overflow-hidden group">

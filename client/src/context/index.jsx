@@ -1,5 +1,5 @@
 import React, { useContext, createContext, useEffect, useState } from "react";
-import { useAddress, useContract, useContractWrite, useMetamask } from '@thirdweb-dev/react';
+import { useAddress, useContract, useContractWrite, useMetamask, useDisconnect } from '@thirdweb-dev/react';
 import { ethers } from 'ethers';
 // import CrowdFundingABI from "../abi/CrowdFunding.json";
 
@@ -22,29 +22,31 @@ export const StateContextProvider = ({ children }) => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  const { contract } = useContract('0x05BB988268FB2cAA97ea2DA78A7167671565fd02');
+  // 0x05BB988268FB2cAA97ea2DA78A7167671565fd02
+  const { contract } = useContract('0xCB05723720e4dEbE893ef767c89ad27Fe8256CD3');
   const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign');
 
   const address = useAddress();
   const connect = useMetamask();
+  const disconnect = useDisconnect();
 
   const publishCampaign = async (form) => {
-  if (!contract) {
-    console.error("Contract not initialized or network mismatch");
-    return;
-  }
+    if (!contract) {
+      console.error("Contract not initialized or network mismatch");
+      return;
+    }
 
-  try {
-    const data = await contract.call("createCampaign", [
-      address,                                     // _owner
-      form.title,                                  // _title
-      form.description,                            // _description
-      form.target,
-      Math.floor(new Date(form.deadline).getTime() / 1000), // _deadline (seconds)
-      form.image                                   
-    ]);
+    try {
+      const data = await contract.call("createCampaign", [
+        address,                                     // _owner
+        form.title,                                  // _title
+        form.description,                            // _description
+        form.target,
+        Math.floor(new Date(form.deadline).getTime() / 1000), // _deadline (seconds)
+        form.image
+      ]);
 
-    console.log("Contract call success:", data);
+      console.log("Contract call success:", data);
     } catch (error) {
       console.error("Contract call failure:", error);
     }
@@ -82,6 +84,7 @@ export const StateContextProvider = ({ children }) => {
           deadline: campaign.deadline.toNumber(),
           amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
           image: campaign.image,
+          claimed: campaign.claimed,  // Add parsing for claimed status
           pId: idx,
         });
 
@@ -132,7 +135,7 @@ export const StateContextProvider = ({ children }) => {
 
     const parsedDonations = [];
 
-    for(let i = 0; i < numberOfDonations; i++) {
+    for (let i = 0; i < numberOfDonations; i++) {
       parsedDonations.push({
         donator: donations[0][i],
         donation: ethers.utils.formatEther(donations[1][i].toString())
@@ -156,6 +159,30 @@ export const StateContextProvider = ({ children }) => {
     }
   };
 
+  const payoutToCreator = async (pId) => {
+    if (!contract) return;
+    try {
+      const data = await contract.call("payoutToCreator", [pId]);
+      console.log("Payout success:", data);
+      return data;
+    } catch (error) {
+      console.error("Payout failed:", error);
+      throw error;
+    }
+  };
+
+  const refundToBacker = async (pId) => {
+    if (!contract) return;
+    try {
+      const data = await contract.call("refundToBacker", [pId]);
+      console.log("Refund success:", data);
+      return data;
+    } catch (error) {
+      console.error("Refund failed:", error);
+      throw error;
+    }
+  };
+
   return (
     <StateContext.Provider
       value={{
@@ -168,10 +195,13 @@ export const StateContextProvider = ({ children }) => {
         donate,
         getDonations,
         deleteCampaign,
+        payoutToCreator,
+        refundToBacker,
         theme,
         toggleTheme,
         searchQuery,
         setSearchQuery,
+        disconnect,
       }}
     >
       {children}

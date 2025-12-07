@@ -3,7 +3,7 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 import { Sidebar, Navbar, PageAnimation } from './components';
-import { CampaignDetails, CreateCampaign, Home, Profile } from './pages';
+import { CampaignDetails, CreateCampaign, Home, Profile, Payment, Withdraw } from './pages';
 
 const App = () => {
 	const location = useLocation();
@@ -37,6 +37,16 @@ const App = () => {
 						<Route path='/campaign-details/:id' element={
 							<PageAnimation>
 								<CampaignDetails />
+							</PageAnimation>
+						} />
+						<Route path='/payment' element={
+							<PageAnimation>
+								<Payment />
+							</PageAnimation>
+						} />
+						<Route path='/withdraw' element={
+							<PageAnimation>
+								<Withdraw />
 							</PageAnimation>
 						} />
 					</Routes>

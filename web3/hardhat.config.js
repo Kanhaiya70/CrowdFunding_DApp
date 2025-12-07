@@ -105,7 +105,7 @@
 // // };
 
 require("@matterlabs/hardhat-zksync-solc");
-require("@matterlabs/hardhat-zksync-verify");
+// require("@matterlabs/hardhat-zksync-verify");
 require("@nomicfoundation/hardhat-ethers");
 require("@nomicfoundation/hardhat-verify");
 require("dotenv").config();
@@ -129,17 +129,21 @@ module.exports = {
       optimizer: { enabled: true, runs: 200 },
     },
   },
+  // etherscan: {
+  //   apiKey: process.env.ETHERSCAN_API_KEY,  // single key for all networks
+  //   customChains: [
+  //     {
+  //       network: "sepolia",
+  //       chainId: 11155111,
+  //       urls: {
+  //         apiURL: "https://api-sepolia.etherscan.io/api",
+  //         browserURL: "https://sepolia.etherscan.io",
+  //       },
+  //     },
+  //   ],
+  // },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,  // ✅ single key for all networks
-    customChains: [
-      {
-        network: "sepolia",
-        chainId: 11155111,
-        urls: {
-          apiURL: "https://api-sepolia.etherscan.io/api",
-          browserURL: "https://sepolia.etherscan.io",
-        },
-      },
-    ],
+    // Single API key works for all supported chains
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };
