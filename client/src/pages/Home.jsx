@@ -17,15 +17,27 @@ const Home = () => {
   }
 
   useEffect(() => {
-    if(contract)
+    if (contract)
       fetchCampaigns();
   }, [address, contract]);
 
   const filteredCampaigns = useMemo(() => {
-    if (!searchQuery) return campaigns;
+    // Current time in milliseconds
+    const now = Date.now();
+    const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+
+    // Filter logic
+    const activeCampaigns = campaigns.filter(campaign => {
+      const deadlineEnd = campaign.deadline * 1000;
+      const disappearTime = deadlineEnd + TWO_DAYS_MS;
+
+      return now < disappearTime;
+    });
+
+    if (!searchQuery) return activeCampaigns;
 
     const lowered = searchQuery.toLowerCase();
-    return campaigns.filter((campaign) => {
+    return activeCampaigns.filter((campaign) => {
       const titleMatch = campaign.title?.toLowerCase().includes(lowered);
       const descMatch = campaign.description?.toLowerCase().includes(lowered);
       const ownerMatch = campaign.owner?.toLowerCase().includes(lowered);
@@ -39,7 +51,7 @@ const Home = () => {
 
   return (
     <DisplayCampaigns
-      title="All Campaigns"
+      title="Discover Campaigns"
       isLoading={isLoading}
       campaigns={filteredCampaigns}
       emptyMessage={emptyMessage}

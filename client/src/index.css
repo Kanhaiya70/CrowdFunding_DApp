@@ -63,7 +63,9 @@ body {
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  filter: invert(0.8);
+  filter: invert(1);
+  padding-left: 10px;
+  transform: scale(1.2);
 }
 
 .bg-\[\#13131a\] {

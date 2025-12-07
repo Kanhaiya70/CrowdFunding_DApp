@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 
 import { useStateContext } from '../context';
-import { CustomButton, CountBox } from '../components';
+import { CustomButton, CountBox, Loader } from '../components';
 import PaymentSuccessCard from '../components/PaymentSuccessCard';
 import { calculateBarPercentage, daysLeft } from '../utils';
 import { thirdweb } from '../assets';
@@ -22,10 +22,12 @@ const CampaignDetails = () => {
   const hideTimer = useRef(null);
 
   const remainingDays = campaign ? daysLeft(campaign.deadline) : 0;
+  const isExpired = remainingDays === 0;
+  const isComplete = campaign ? parseFloat(campaign.amountCollected) >= parseFloat(campaign.target) : false;
+  const canDonate = !isExpired && !isComplete;
 
   const fetchDonators = async () => {
     const data = await getDonations(id);
-
     setDonators(data);
   }
 
@@ -36,7 +38,7 @@ const CampaignDetails = () => {
   };
 
   useEffect(() => {
-    if(contract) {
+    if (contract) {
       fetchDonators();
       fetchCampaignDetails();
     }
@@ -91,103 +93,160 @@ const CampaignDetails = () => {
 
   return (
     <div>
-      {isLoading && 'Loading...'}
+      {isLoading && <Loader />}
       {showPaymentCard && <PaymentSuccessCard amount={lastDonation} />}
 
-      <div className='w-full flex md:flex-row flex-col mt-10 gap-[30px]'>
-        <div className='flex-1 flex-col'>
-          <img src={campaign.image} alt="campaign" className="w-full h-[410px] object-cover rounded-x1"/>
-          <div className='relative w-full h-[5px] bg-[#3a3a43] mt-2'>
-            <div className='absolute h-full bg-[#4acd8d]' style={{ width: `${calculateBarPercentage(campaign.target, campaign.amountCollected)}%`, maxWidth: '100%'}}>
+      {/* GTA-Style Hero Section (Theme-Compatible) */}
+      <div className="relative w-full h-[500px] rounded-[24px] overflow-hidden group">
+        <img src={campaign.image} alt="campaign" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+        {/* Hero Text */}
+        <div className="absolute bottom-10 left-10 max-w-[800px]">
+          <h1 style={{ color: '#ffffff' }} className="font-epilogue font-black text-[42px] uppercase tracking-wide drop-shadow-lg leading-tight">
+            {campaign.title}
+          </h1>
+          <div className="flex items-center gap-4 mt-4">
+            <div className="bg-[#4acd8d]/20 backdrop-blur-md border border-[#4acd8d]/50 px-4 py-1 rounded-full">
+              <p className="text-[#4acd8d] font-bold text-[14px] uppercase tracking-wider">Verified Campaign</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+              <p style={{ color: 'rgba(255,255,255,0.8)' }} className="text-sm font-bold uppercase">Live</p>
             </div>
           </div>
-        </div>
-
-        <div className='flex md:w-[150px] w-full flex-wrap justify-between gap-[30px]'>
-          <CountBox title="Days Left" value={remainingDays} />
-          <CountBox title={`Raised of ${campaign.target}`} value={campaign.amountCollected} />
-          <CountBox title="Total Backers" value={donators.length} />
         </div>
       </div>
 
-      <div className='mt-[60px] flex lg:flex-row flex-col gap-5'>
-        <div className='flex-[2] flex flex-col gap-[40px]'>
+      {/* Progress Bar (Floating) */}
+      <div className="relative -mt-8 px-10 z-10 w-full">
+        <div className="bg-[#1c1c24] border border-[#3a3a43] p-6 rounded-[20px] shadow-2xl">
+          <div className="flex justify-between items-end mb-3">
+            <div>
+              <span className="text-4xl font-black text-white">{calculateBarPercentage(campaign.target, campaign.amountCollected)}%</span>
+              <span className="text-[#808191] ml-2 text-lg font-bold uppercase">Funded</span>
+            </div>
+            <p className="text-[#808191] font-medium">{campaign.amountCollected} ETH raised of {campaign.target} ETH</p>
+          </div>
+          <div className='relative w-full h-[16px] bg-[#2c2f32] rounded-full overflow-hidden mb-2'>
+            <div
+              className='absolute h-full bg-gradient-to-r from-[#8c6dfd] via-[#da4ea2] to-[#4acd8d] rounded-full shadow-[0_0_20px_rgba(74,205,141,0.5)] transition-all duration-1000 ease-out'
+              style={{ width: `${calculateBarPercentage(campaign.target, campaign.amountCollected)}%`, maxWidth: '100%' }}>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          {/*Creator*/}
-          <div>
-            <h4 className='font-epilogue font-semibold text-[18px] text-white uppercase'>Creator</h4>
-
-            <div className='mt-[20px] flex flex-row items-center flex-wrap gap-[14px]'>
-              <div className='w-[52px] h-[52px] flex items-center justify-center rounded-full bg-[#2c2f32] cursor-pointer'>
-                <img src={thirdweb} alt='user' className='w-[60%] h-[60%] object-contain' />
-              </div>
-              <div>
-                <h4 className='font-epilogue font-semibold text-[14px] text-white break-all'>{campaign.owner}</h4>
-                <p className='mt-[4px] font-epilogue font-normal text-[12px] text-[#808191]'>10 Campaigns</p>
-              </div>
+      <div className='w-full flex md:flex-row flex-col mt-10 gap-[30px] px-2'>
+        <div className='flex-1 flex-col'>
+          {/* Stats Grid - Floating Glass Cards */}
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-[30px] mb-10'>
+            <div className="bg-[#1c1c24] border border-[#3a3a43] p-6 rounded-[20px] hover:border-[#8c6dfd]/50 transition-colors group">
+              <h4 className="font-epilogue font-bold text-[32px] text-white group-hover:text-[#8c6dfd] transition-colors">{remainingDays}</h4>
+              <p className="font-epilogue font-normal text-[14px] text-[#808191] uppercase tracking-wider mt-2">Days Left</p>
+            </div>
+            <div className="bg-[#1c1c24] border border-[#3a3a43] p-6 rounded-[20px] hover:border-[#8c6dfd]/50 transition-colors group">
+              <h4 className="font-epilogue font-bold text-[32px] text-white group-hover:text-[#8c6dfd] transition-colors">{campaign.amountCollected}</h4>
+              <p className="font-epilogue font-normal text-[14px] text-[#808191] uppercase tracking-wider mt-2">ETH Raised</p>
+            </div>
+            <div className="bg-[#1c1c24] border border-[#3a3a43] p-6 rounded-[20px] hover:border-[#8c6dfd]/50 transition-colors group">
+              <h4 className="font-epilogue font-bold text-[32px] text-white group-hover:text-[#8c6dfd] transition-colors">{donators.length}</h4>
+              <p className="font-epilogue font-normal text-[14px] text-[#808191] uppercase tracking-wider mt-2">Total Backers</p>
             </div>
           </div>
 
-          {/*Story*/}
-          <div>
-            <h4 className='font-epilogue font-semibold text-[18px] text-white uppercase'>Story</h4>
-
-            <div className='mt-[20px]'>
-              <p className='font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] text-justify'>{campaign.description}</p>
-            </div>
-          </div>
-
-          {/*Donators*/}
-          <div>
-            <h4 className='font-epilogue font-semibold text-[18px] text-white uppercase'>Donators</h4>
-
-            <div className='mt-[20px] flex flex-col gap-4'>
-              {donators.length > 0 ? donators.map((item, index) => (
-                <div 
-                  key={`${item.donator}-${index}`}
-                  className="flex justify-between items-center gap-4"
-                >
-                  <p className="font-epilogue font-normal text-[16px] text-[#b2b3bd] leading-[26px] break-all">
-                    {index + 1}.{item.donator}
-                  </p>
-                  <p className="font-epilogue font-normal text-[16px] text-[#8c6dfd] leading-[26px] break-all">
-                    {item.donation}
-                  </p>
+          <div className='flex flex-col gap-[40px]'>
+            {/* Creator Section */}
+            <div>
+              <h4 className='font-epilogue font-bold text-[22px] text-white uppercase tracking-wide mb-6 border-l-4 border-[#8c6dfd] pl-4'>Creator</h4>
+              <div className='flex items-center gap-[20px] bg-[#1c1c24] p-6 rounded-[20px] border border-[#3a3a43]'>
+                <div className='w-[60px] h-[60px] flex items-center justify-center rounded-full bg-[#2c2f32] border-2 border-[#8c6dfd]'>
+                  <img src={thirdweb} alt='user' className='w-[60%] h-[60%] object-contain' />
                 </div>
-              )) : (
-                <p className='font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] text-justify'>No donators yet. Be the first one!</p>
-              )}
+                <div>
+                  <h4 className='font-epilogue font-bold text-[18px] text-white break-all'>{campaign.owner}</h4>
+                  <p className='mt-[4px] font-epilogue font-medium text-[14px] text-[#808191]'>Verified Creator • 10 Campaigns</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Story Section */}
+            <div>
+              <h4 className='font-epilogue font-bold text-[22px] text-white uppercase tracking-wide mb-6 border-l-4 border-[#8c6dfd] pl-4'>The Story</h4>
+              <div className='mt-[20px] bg-[#1c1c24]/50 p-6 rounded-[20px] border border-[#3a3a43]'>
+                <p className='font-epilogue font-normal text-[16px] text-[#b2b3bd] leading-[30px] text-justify tracking-wide'>
+                  {campaign.description}
+                </p>
+              </div>
+            </div>
+
+            {/* Donators Section */}
+            <div>
+              <h4 className='font-epilogue font-bold text-[22px] text-white uppercase tracking-wide mb-6 border-l-4 border-[#8c6dfd] pl-4'>Recent Backers</h4>
+              <div className='mt-[20px] flex flex-col gap-4 max-h-[400px] overflow-y-auto custom-scrollbar p-2'>
+                {donators.length > 0 ? donators.map((item, index) => (
+                  <div key={`${item.donator}-${index}`} className="flex justify-between items-center p-4 bg-[#1c1c24] rounded-[14px] border border-[#3a3a43] hover:border-[#4acd8d]/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-8 h-8 rounded-full bg-[#2c2f32] flex items-center justify-center font-bold text-[#4acd8d]">
+                        {index + 1}
+                      </div>
+                      <p className="font-epilogue font-medium text-[16px] text-[#b2b3bd] truncate max-w-[200px] sm:max-w-none">
+                        {item.donator}
+                      </p>
+                    </div>
+                    <p className="font-epilogue font-bold text-[16px] text-[#4acd8d]">
+                      {item.donation} ETH
+                    </p>
+                  </div>
+                )) : (
+                  <div className="bg-[#1c1c24] p-6 rounded-[14px] text-center border border-dashed border-[#808191]/30">
+                    <p className='font-epilogue font-normal text-[16px] text-[#808191]'>No backers yet. Be the first to join the movement!</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/*Funds*/}
-        <div className='flex-1'>
-          <h4 className='font-epilogue font-semibold text-[18px] text-white uppercase'>Funds</h4>
+        {/* Funding Terminal */}
+        <div className='flex-1 md:max-w-[380px] w-full'>
+          <div className='sticky top-24 flex flex-col p-8 bg-[#1c1c24] rounded-[24px] border border-[#8c6dfd]/20 shadow-[0_0_30px_rgba(140,109,253,0.1)]'>
+            <h4 className='font-epilogue font-bold text-[24px] text-white uppercase tracking-wide mb-6'>Select Funding</h4>
 
-          <div className='mt-[20px] flex flex-col p-4 bg-[#1c1c24] rounded-[10px]'>
-            <p className='font-epilogue font-medium text-[20px] leading-[30px] text-center text-[#808191]'>Fund the Campaign</p>
-            <div className='mt-[30px]'>
-              <input
-                type='number'
-                placeholder='ETH 0.1'
-                step='0.01'
-                className='w-full py-[10px] sm:px-[20px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[18px] leading-[30px] placeholder:text-[#4b5264] rounded-[10px]'
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-
-              <div className='my-[20px] p-4 bg-[#13131a] rounded-[10px]'>
-                <h4 className='font-epilogue font-semibold text-[14px] leading-[22px] text-white'>Back it because you believe in it.</h4>
-                <p className='mt-[20px] font-epilogue font-normal leading-[22px] text-[#808191]'>Support the project for no reward, just because it speaks to you.</p>
+            <div className='w-full'>
+              <div className="relative mb-6">
+                <span className="absolute top-1/2 -translate-y-1/2 left-4 text-[#808191] font-bold">ETH</span>
+                <input
+                  type='number'
+                  placeholder='0.1'
+                  step='0.01'
+                  className='w-full py-[16px] pl-[60px] pr-[20px] outline-none border-[2px] border-[#2c2f32] focus:border-[#8c6dfd] bg-[#13131a] font-epilogue text-white text-[24px] font-bold placeholder:text-[#4b5264] rounded-[12px] transition-all'
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={!canDonate}
+                />
               </div>
-              
-              <CustomButton
-                btnType='button'
-                title='Fund Campaign'
-                styles='w-full bg-[#8c6dfd]'
-                handleClick={handleDonate}
-              />
+
+              <div className='p-5 bg-[#13131a] rounded-[16px] border border-[#3a3a43] mb-6'>
+                <h4 className='font-epilogue font-bold text-[14px] leading-[22px] text-white uppercase mb-2'>Why Support?</h4>
+                <p className='font-epilogue font-normal text-[13px] leading-[20px] text-[#808191]'>
+                  "Back it because you believe in it. Support the project for no reward, just because it speaks to you."
+                </p>
+              </div>
+
+              {canDonate ? (
+                <CustomButton
+                  btnType='button'
+                  title='FUND CAMPAIGN'
+                  styles='w-full bg-gradient-to-r from-[#8c6dfd] to-[#7f5ad5] hover:from-[#9d84fd] hover:to-[#8c6dfd] shadow-lg shadow-[#8c6dfd]/30 font-bold text-[16px] py-4 rounded-[12px] uppercase tracking-wider transform hover:scale-[1.02] transition-all duration-300'
+                  handleClick={handleDonate}
+                />
+              ) : (
+                <div className="w-full py-4 bg-[#2c2f32] rounded-[12px] text-center">
+                  <p className="font-epilogue font-bold text-[#808191] uppercase tracking-wide">
+                    {isComplete ? 'Campaign Funded' : 'Campaign Expired'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

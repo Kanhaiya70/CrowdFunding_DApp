@@ -17,7 +17,7 @@ const Profile = () => {
   }
 
   useEffect(() => {
-    if(contract)
+    if (contract)
       fetchCampaigns();
   }, [address, contract]);
 
@@ -39,7 +39,7 @@ const Profile = () => {
 
   return (
     <DisplayCampaigns
-      title="All Campaigns"
+      title="Your Campaigns"
       isLoading={isLoading}
       campaigns={filteredCampaigns}
       emptyMessage={emptyMessage}
