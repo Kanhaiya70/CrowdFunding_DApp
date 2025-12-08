@@ -11,6 +11,7 @@ contract CrowdFunding {
         uint256 amountCollected;
         string image;
         bool isDeleted;     // To delete or hide Campaign
+        bool claimed;       // To check if funds were paid out
         address[] donators;
         uint256[] donations;
     }
@@ -30,6 +31,7 @@ contract CrowdFunding {
         campaign.deadline = _deadline;
         campaign.amountCollected = 0;
         campaign.image = _image;
+        campaign.claimed = false;   // newly
 
         numberOfCampaigns++;
 
@@ -41,14 +43,48 @@ contract CrowdFunding {
 
         Campaign storage campaign = campaigns[_id];
 
+        require(msg.sender != campaign.owner, "The creator cannot donate to their own campaign.");
+
         campaign.donators.push(msg.sender);
         campaign.donations.push(amount);
 
-        (bool sent,) = payable(campaign.owner).call{value: amount}("");
+        // (bool sent,) = payable(campaign.owner).call{value: amount}("");
+        bool sent = true; // Simulating success for local state update
 
         if(sent) {
             campaign.amountCollected += amount;
         }
+    }
+
+    function payoutToCreator(uint256 _id) public {
+        Campaign storage campaign = campaigns[_id];
+        require(msg.sender == campaign.owner, "Only owner can payout");
+        // require(block.timestamp > campaign.deadline, "Campaign not ended");
+        require(campaign.amountCollected >= campaign.target, "Target not met");
+        require(!campaign.claimed, "Already claimed");
+
+        campaign.claimed = true;
+        (bool sent,) = payable(campaign.owner).call{value: campaign.amountCollected}("");
+        require(sent, "Payout failed");
+    }
+
+    function refundToBacker(uint256 _id) public {
+        Campaign storage campaign = campaigns[_id];
+        require(block.timestamp > campaign.deadline, "Campaign not ended");
+        require(campaign.amountCollected < campaign.target, "Target met, cannot refund");
+
+        uint256 totalRefund = 0;
+        for(uint i = 0; i < campaign.donators.length; i++) {
+            if(campaign.donators[i] == msg.sender && campaign.donations[i] > 0) {
+                totalRefund += campaign.donations[i];
+                campaign.donations[i] = 0; // Prevent double refund
+            }
+        }
+
+        require(totalRefund > 0, "No funds to refund");
+
+        (bool sent,) = payable(msg.sender).call{value: totalRefund}("");
+        require(sent, "Refund failed");
     }
 
     function getDonators(uint256 _id) view public returns (address[] memory, uint256[] memory) {

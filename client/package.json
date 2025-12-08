@@ -13,9 +13,11 @@
     "@thirdweb-dev/react": "^4.9.4",
     "@thirdweb-dev/sdk": "^4.0.99",
     "ethers": "^5.8.0",
+    "framer-motion": "^12.23.25",
     "react": "^18.3",
     "react-dom": "^18.3",
     "react-router-dom": "^7.9.4",
+    "react-tilt": "^1.0.2",
     "thirdweb": "^5"
   },
   "devDependencies": {

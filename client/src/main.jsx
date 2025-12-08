@@ -38,19 +38,22 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { ThirdwebProvider } from '@thirdweb-dev/react';
 import { Sepolia } from "@thirdweb-dev/chains";
 import { StateContextProvider } from "./context";
+import { CurrencyProvider } from "./context/CurrencyContext";
 import App from './App';
 import './index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
-  <ThirdwebProvider 
+  <ThirdwebProvider
     clientId={import.meta.env.VITE_THIRDWEB_CLIENT_ID}
     activeChain={Sepolia}
   >
     <Router>
       <StateContextProvider>
-        <App />
+        <CurrencyProvider>
+          <App />
+        </CurrencyProvider>
       </StateContextProvider>
     </Router>
   </ThirdwebProvider>
