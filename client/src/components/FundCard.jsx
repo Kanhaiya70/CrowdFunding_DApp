@@ -3,12 +3,14 @@ import React from 'react'
 import { tagType, thirdweb } from '../assets';
 import { daysLeft } from '../utils';
 import { useStateContext } from '../context';
+import { useCurrency } from '../context/CurrencyContext';
 
 // NOTE: We stripped the manual hover classes because Tilt handles the scale/transform now
 // We keep the shadow and ring for aesthetics
 const FundCard = ({ owner, title, description, target, deadline, amountCollected, image, pId, handleClick }) => {
   const remainingDays = daysLeft(deadline);
   const { address, deleteCampaign } = useStateContext();
+  const { convert } = useCurrency();
 
   const handleDelete = async (e) => {
     e.stopPropagation(); // prevent card click from triggering navigation
@@ -46,8 +48,8 @@ const FundCard = ({ owner, title, description, target, deadline, amountCollected
 
         <div className='flex justify-between flex-wrap mt-[15px] gap-2'>
           <div className='flex flex-col'>
-            <h4 className='font-epilogue font-semibold text-[14px] text-[#b2b3bd] leading-[22px]'>{amountCollected}</h4>
-            <p className='mt-[3px] font-epilogue font-normal text-[12px] leading-[18px] text-[#808191] sm:max-w-[120px] truncate'>Raised of {target}</p>
+            <h4 className='font-epilogue font-semibold text-[14px] text-[#b2b3bd] leading-[22px]'>{convert(amountCollected)}</h4>
+            <p className='mt-[3px] font-epilogue font-normal text-[12px] leading-[18px] text-[#808191] sm:max-w-[120px] truncate'>Raised of {convert(target)}</p>
           </div>
 
           <div className='flex flex-col'>

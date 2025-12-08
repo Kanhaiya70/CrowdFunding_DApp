@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStateContext } from '../context';
+import { useCurrency } from '../context/CurrencyContext';
 import { Loader } from '../components';
 import { calculateBarPercentage, daysLeft } from '../utils';
 
@@ -9,6 +10,7 @@ const Withdraw = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const { address, contract, getUserCampaigns, payoutToCreator } = useStateContext();
+  const { convert } = useCurrency();
 
   const fetchMyCampaigns = async () => {
     setIsLoading(true);
@@ -76,7 +78,7 @@ const Withdraw = () => {
                 <div className="flex-1 w-full">
                   <h3 className="font-epilogue font-bold text-[18px] text-white truncate group-hover:text-[#8c6dfd] transition-colors">{campaign.title}</h3>
                   <div className="flex gap-4 mt-2 mb-3">
-                    <span className="text-[#808191] text-xs">Target: <span className="text-white">{campaign.target} ETH</span></span>
+                    <span className="text-[#808191] text-xs">Target: <span className="text-white">{convert(campaign.target)}</span></span>
                     <span className="text-[#808191] text-xs">deadline: <span className={isExpired ? "text-red-500" : "text-green-500"}>{remainingDays} days left</span></span>
                   </div>
 
@@ -87,7 +89,8 @@ const Withdraw = () => {
                     ></div>
                   </div>
                   <div className="flex justify-between mt-2">
-                    <span className="text-[#808191] text-xs font-bold">{campaign.amountCollected} ETH Raised</span>
+                    <span className="text-[#808191] text-xs font-bold">{convert(campaign.amountCollected)} Raised</span>
+
                     <span className="text-[#4acd8d] text-xs font-bold">{progress}%</span>
                   </div>
                 </div>

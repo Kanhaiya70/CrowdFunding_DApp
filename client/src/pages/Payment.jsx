@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStateContext } from '../context';
+import { useCurrency } from '../context/CurrencyContext';
 import { Loader } from '../components';
 import { daysLeft } from '../utils';
 
@@ -7,6 +8,7 @@ const Payment = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [contributions, setContributions] = useState([]);
   const { address, contract, getCampaigns, getDonations, refundToBacker } = useStateContext();
+  const { convert } = useCurrency();
 
   const fetchContributions = async () => {
     setIsLoading(true);
@@ -93,7 +95,7 @@ const Payment = () => {
                           <span className="truncate max-w-[150px]">{item.title}</span>
                         </td>
                         <td className="p-4 font-epilogue font-bold text-[#4acd8d]">
-                          {item.donationAmount} ETH
+                          {convert(item.donationAmount)}
                         </td>
                         <td className="p-4">
                           {isExpired ? (

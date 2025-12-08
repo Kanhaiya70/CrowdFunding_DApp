@@ -3,6 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 
 import { useStateContext } from '../context';
+import { useCurrency } from '../context/CurrencyContext';
 import { CustomButton, CountBox, Loader } from '../components';
 import PaymentSuccessCard from '../components/PaymentSuccessCard';
 import { calculateBarPercentage, daysLeft } from '../utils';
@@ -12,11 +13,30 @@ const CampaignDetails = () => {
   const { state } = useLocation();
   const { id } = useParams();
   const { donate, getDonations, getCampaigns, contract, address, connect } = useStateContext();
+  const { convert, rates } = useCurrency();
+  const [paymentCurrency, setPaymentCurrency] = useState('ETH');
 
   const [isLoading, setIsLoading] = useState(false);
   const [amount, setAmount] = useState('');
   const [donators, setDonators] = useState([]);
   const [campaign, setCampaign] = useState(state ?? null);
+
+  const handlePaymentCurrencyChange = (e) => {
+    const newCurrency = e.target.value;
+    const oldCurrency = paymentCurrency;
+
+    if (amount && !isNaN(parseFloat(amount))) {
+      const rateNew = rates[newCurrency] || 1;
+      const rateOld = rates[oldCurrency] || 1;
+      // Convert: Old -> ETH -> New
+      // Value * (rateNew / rateOld)
+      const val = parseFloat(amount);
+      const newVal = (val * (rateNew / rateOld)).toFixed(6);
+      setAmount(newVal);
+    }
+    setPaymentCurrency(newCurrency);
+  };
+
   const [showPaymentCard, setShowPaymentCard] = useState(false);
   const [lastDonation, setLastDonation] = useState('');
   const hideTimer = useRef(null);
@@ -74,8 +94,17 @@ const CampaignDetails = () => {
 
     setIsLoading(true);
     try {
-      await donate(id, amount);
+      let donationAmount = amount;
+      if (paymentCurrency !== 'ETH') {
+        const rate = rates[paymentCurrency] || 1;
+        // Convert input to ETH: amount / rate
+        // Fix: Use toFixed(18) to avoid "fractional component exceeds decimals" error
+        donationAmount = (parseFloat(amount) / rate).toFixed(18);
+      }
+
+      await donate(id, donationAmount);
       await fetchDonators();
+
       await fetchCampaignDetails();
 
       setLastDonation(amount);
@@ -158,7 +187,7 @@ const CampaignDetails = () => {
               <span className="text-4xl font-black text-white">{calculateBarPercentage(campaign.target, campaign.amountCollected)}%</span>
               <span className="text-[#808191] ml-2 text-lg font-bold uppercase">Funded</span>
             </div>
-            <p className="text-[#808191] font-medium">{campaign.amountCollected} ETH raised of {campaign.target} ETH</p>
+            <p className="text-[#808191] font-medium">{convert(campaign.amountCollected)} raised of {convert(campaign.target)}</p>
           </div>
           <div className='relative w-full h-[16px] bg-[#2c2f32] rounded-full overflow-hidden mb-2'>
             <div
@@ -178,8 +207,8 @@ const CampaignDetails = () => {
               <p className="font-epilogue font-normal text-[14px] text-[#808191] uppercase tracking-wider mt-2">Days Left</p>
             </div>
             <div className="bg-[#1c1c24] border border-[#3a3a43] p-6 rounded-[20px] hover:border-[#8c6dfd]/50 transition-colors group">
-              <h4 className="font-epilogue font-bold text-[32px] text-white group-hover:text-[#8c6dfd] transition-colors">{campaign.amountCollected}</h4>
-              <p className="font-epilogue font-normal text-[14px] text-[#808191] uppercase tracking-wider mt-2">ETH Raised</p>
+              <h4 className="font-epilogue font-bold text-[32px] text-white group-hover:text-[#8c6dfd] transition-colors">{convert(campaign.amountCollected)}</h4>
+              <p className="font-epilogue font-normal text-[14px] text-[#808191] uppercase tracking-wider mt-2">Raised</p>
             </div>
             <div className="bg-[#1c1c24] border border-[#3a3a43] p-6 rounded-[20px] hover:border-[#8c6dfd]/50 transition-colors group">
               <h4 className="font-epilogue font-bold text-[32px] text-white group-hover:text-[#8c6dfd] transition-colors">{donators.length}</h4>
@@ -227,7 +256,7 @@ const CampaignDetails = () => {
                       </p>
                     </div>
                     <p className="font-epilogue font-bold text-[16px] text-[#4acd8d]">
-                      {item.donation} ETH
+                      {convert(item.donation)}
                     </p>
                   </div>
                 )) : (
@@ -247,16 +276,27 @@ const CampaignDetails = () => {
 
             <div className='w-full'>
               <div className="relative mb-6">
-                <span className="absolute top-1/2 -translate-y-1/2 left-4 text-[#808191] font-bold">ETH</span>
                 <input
                   type='number'
-                  placeholder='0.1'
+                  placeholder={`0.1 ${paymentCurrency}`}
                   step='0.01'
-                  className='w-full py-[16px] pl-[60px] pr-[20px] outline-none border-[2px] border-[#2c2f32] focus:border-[#8c6dfd] bg-[#13131a] font-epilogue text-white text-[24px] font-bold placeholder:text-[#4b5264] rounded-[12px] transition-all'
+                  className='w-full py-[16px] pl-[60px] pr-[100px] outline-none border-[2px] border-[#2c2f32] focus:border-[#8c6dfd] bg-[#13131a] font-epilogue text-white text-[24px] font-bold placeholder:text-[#4b5264] rounded-[12px] transition-all'
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   disabled={!canDonate}
                 />
+                <div className="absolute top-1/2 -translate-y-1/2 right-4">
+                  <select
+                    value={paymentCurrency}
+                    onChange={handlePaymentCurrencyChange}
+                    className="bg-[#2c2f32] text-white font-epilogue text-[14px] outline-none border border-[#3a3a43] rounded-[8px] px-2 py-1 cursor-pointer"
+                  >
+                    <option value="ETH">ETH</option>
+                    <option value="USD">USD</option>
+                    <option value="INR">INR</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
               </div>
 
               <div className='p-5 bg-[#13131a] rounded-[16px] border border-[#3a3a43] mb-6'>

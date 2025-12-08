@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ethers } from 'ethers'
 import { useStateContext } from '../context'
+import { useCurrency } from '../context/CurrencyContext'
 
 import { createCampaign, money } from '../assets'
 import { CustomButton, FormField, Loader } from '../components'
@@ -11,6 +12,8 @@ const CreateCampaign = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const { createCampaign } = useStateContext();
+  const { rates } = useCurrency();
+  const [inputCurrency, setInputCurrency] = useState('ETH');
   const [form, setForm] = useState({
     name: '',
     title: '',
@@ -19,6 +22,22 @@ const CreateCampaign = () => {
     deadline: '',
     image: ''
   });
+
+  const handleCurrencyChange = (e) => {
+    const newCurrency = e.target.value;
+    const oldCurrency = inputCurrency;
+
+    if (form.target && !isNaN(parseFloat(form.target))) {
+      const rateNew = rates[newCurrency] || 1;
+      const rateOld = rates[oldCurrency] || 1;
+      // Convert: Old -> ETH -> New
+      // Value * (rateNew / rateOld)
+      const val = parseFloat(form.target);
+      const newVal = (val * (rateNew / rateOld)).toFixed(6); // Standard fiat precision
+      setForm({ ...form, target: newVal });
+    }
+    setInputCurrency(newCurrency);
+  };
 
   const handleFormFieldChange = (fieldName, e) => {
     setForm({ ...form, [fieldName]: e.target.value })
@@ -50,7 +69,16 @@ const CreateCampaign = () => {
     checkIfImage(form.image, async (exists) => {
       if (exists) {
         setIsLoading(true)
-        await createCampaign({ ...form, target: ethers.utils.parseUnits(form.target, 18) })
+
+        // Convert to ETH if needed
+        let targetInEth = form.target;
+        if (inputCurrency !== 'ETH') {
+          const rate = rates[inputCurrency] || 1;
+          // Fix: Use toFixed(18) to avoid "fractional component exceeds decimals" error
+          targetInEth = (parseFloat(form.target) / rate).toFixed(18);
+        }
+
+        await createCampaign({ ...form, target: ethers.utils.parseUnits(targetInEth, 18) })
         setIsLoading(false);
         navigate('/');
       } else {
@@ -133,14 +161,26 @@ const CreateCampaign = () => {
         <div className='flex flex-wrap gap-[40px]'>
           <label className="flex-1 w-full flex flex-col group">
             <span className="font-epilogue font-bold text-[14px] leading-[22px] text-[#808191] mb-[10px] uppercase tracking-wider group-hover:text-[#4acd8d] transition-colors">FUNDING GOAL *</span>
-            <input
-              required
-              value={form.target}
-              onChange={(e) => handleFormFieldChange('target', e)}
-              type="text"
-              placeholder="ETH 0.50"
-              className="py-[18px] sm:px-[25px] px-[15px] outline-none border-[2px] border-[#3a3a43] bg-[#1c1c24] font-epilogue text-white text-[16px] placeholder:text-[#4b5264] rounded-[12px] sm:min-w-[300px] focus:border-[#4acd8d] focus:shadow-[0_0_20px_rgba(74,205,141,0.2)] transition-all duration-300"
-            />
+            <div className="flex bg-[#1c1c24] border-[2px] border-[#3a3a43] rounded-[12px] focus-within:border-[#4acd8d] focus-within:shadow-[0_0_20px_rgba(74,205,141,0.2)] transition-all duration-300">
+              <input
+                required
+                value={form.target}
+                onChange={(e) => handleFormFieldChange('target', e)}
+                type="text"
+                placeholder={`0.50 ${inputCurrency}`}
+                className="flex-1 py-[18px] sm:px-[25px] px-[15px] outline-none bg-transparent font-epilogue text-white text-[16px] placeholder:text-[#4b5264]"
+              />
+              <select
+                value={inputCurrency}
+                onChange={handleCurrencyChange}
+                className="bg-transparent text-white font-epilogue outline-none border-l border-[#3a3a43] px-3 cursor-pointer mr-2"
+              >
+                <option value="ETH" className="bg-[#1c1c24]">ETH</option>
+                <option value="USD" className="bg-[#1c1c24]">USD</option>
+                <option value="INR" className="bg-[#1c1c24]">INR</option>
+                <option value="EUR" className="bg-[#1c1c24]">EUR</option>
+              </select>
+            </div>
           </label>
           <label className="flex-1 w-full flex flex-col group">
             <span className="font-epilogue font-bold text-[14px] leading-[22px] text-[#808191] mb-[10px] uppercase tracking-wider group-hover:text-[#4acd8d] transition-colors">DEADLINE *</span>
