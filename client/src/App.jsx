@@ -9,7 +9,8 @@ const App = () => {
 	const location = useLocation();
 
 	return (
-		<div className="relative sm: -8 p-4 bg-[#13131a] min-h-screen flex flex-row">
+		
+		<div className="relative sm:-8 p-4 bg-white dark:bg-[#13131a] min-h-screen flex flex-row transition-colors duration-300">
 			<div className='sm:flex hidden mr-10 relative'>
 				<Sidebar />
 			</div>
